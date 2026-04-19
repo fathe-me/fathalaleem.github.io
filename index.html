@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Animal Cell Project</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    text-align: center;
+    color: white;
+
+    background: linear-gradient(270deg, #1e3c72, #2a5298, #4caf50, #ff9800);
+    background-size: 800% 800%;
+    animation: bgMove 10s ease infinite;
+}
+
+@keyframes bgMove {
+    0% {background-position:0% 50%;}
+    50% {background-position:100% 50%;}
+    100% {background-position:0% 50%;}
+}
+
+.page { display: none; padding: 30px; }
+.active { display: block; }
+
+h1 { font-size: 50px; }
+h2 { font-size: 40px; }
+p { font-size: 22px; }
+
+button {
+    padding: 18px;
+    margin: 10px;
+    font-size: 20px;
+    border-radius: 12px;
+    border: none;
+    background: #00c6ff;
+    color: white;
+    cursor: pointer;
+}
+button:hover { background: #0072ff; }
+
+input {
+    padding: 12px;
+    font-size: 18px;
+}
+
+.box {
+    background: rgba(0,0,0,0.4);
+    padding: 30px;
+    margin: 20px auto;
+    width: 85%;
+    border-radius: 20px;
+}
+
+/* BIG CELL */
+#cellSVG {
+    width: 550px;
+    transition: transform 0.05s;
+}
+
+/* GAME */
+.matchItem {
+    display: inline-block;
+    padding: 15px;
+    margin: 10px;
+    font-size: 18px;
+    background: #333;
+    border-radius: 10px;
+    cursor: pointer;
+}
+.selected { background: orange !important; }
+
+/* CREDITS */
+#credits {
+    position: absolute;
+    top: -100%;
+    width: 100%;
+    font-size: 25px;
+    animation: scrollDown 5s linear forwards;
+}
+
+@keyframes scrollDown {
+    from { top: -100%; }
+    to { top: 100%; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- INTRO -->
+<div id="intro1" class="page active">
+    <h1>Animal Cell Project</h1>
+    <p>What is your name?</p>
+    <input id="nameInput">
+    <br><br>
+    <button onclick="nextIntro()">Next</button>
+</div>
+
+<div id="intro2" class="page">
+    <p>How is your day?</p>
+    <input id="feeling">
+    <br><br>
+    <button onclick="start()">Start</button>
+</div>
+
+<!-- MENU -->
+<div id="menu" class="page">
+    <h2 id="welcome"></h2>
+    <button onclick="showPage('explore')">Explore</button>
+    <button onclick="showPage('activity')">Game</button>
+    <button onclick="showPage('quiz')">Quiz</button>
+    <button onclick="showPage('end')">Finish</button>
+</div>
+
+<!-- EXPLORE -->
+<div id="explore" class="page">
+    <h2>Animal Cell</h2>
+    <button onclick="showPage('menu')">Back</button>
+
+    <div class="box">
+
+        <!-- ALWAYS WORKING CELL -->
+        <svg id="cellSVG" viewBox="0 0 300 300">
+            <circle cx="150" cy="150" r="120" fill="#ff8a65"/>
+            <circle cx="150" cy="150" r="40" fill="#ffd54f"/>
+            <text x="120" y="155" font-size="12">Nucleus</text>
+
+            <ellipse cx="80" cy="100" rx="25" ry="12" fill="#8d6e63"/>
+            <text x="50" y="90" font-size="10">Mito</text>
+
+            <rect x="200" y="160" width="40" height="20" fill="#ba68c8"/>
+            <text x="190" y="150" font-size="10">Golgi</text>
+        </svg>
+
+        <p>Move your mouse 👆</p>
+    </div>
+</div>
+
+<!-- GAME -->
+<div id="activity" class="page">
+    <h2>Matching Game</h2>
+    <button onclick="showPage('menu')">Back</button>
+    <button onclick="resetGame()">Reset</button>
+
+    <div class="box">
+        <div>
+            <div class="matchItem" onclick="select(this,'nucleus')">Nucleus</div>
+            <div class="matchItem" onclick="select(this,'mito')">Mitochondria</div>
+            <div class="matchItem" onclick="select(this,'golgi')">Golgi</div>
+        </div>
+
+        <div>
+            <div class="matchItem" onclick="match('control')">Controls DNA</div>
+            <div class="matchItem" onclick="match('energy')">ATP production</div>
+            <div class="matchItem" onclick="match('package')">Protein packaging</div>
+        </div>
+
+        <p id="gameResult"></p>
+    </div>
+</div>
+
+<!-- QUIZ -->
+<div id="quiz" class="page">
+    <h2>Quiz</h2>
+    <button onclick="showPage('menu')">Back</button>
+    <button onclick="resetQuiz()">Reset</button>
+
+    <p id="q"></p>
+    <button onclick="ans('a')" id="a"></button>
+    <button onclick="ans('b')" id="b"></button>
+    <button onclick="ans('c')" id="c"></button>
+
+    <p id="score"></p>
+</div>
+
+<!-- CREDITS -->
+<div id="end" class="page">
+    <h1>Credits</h1>
+
+    <button onclick="showPage('menu')">Back</button>
+    <button onclick="restartCredits()">Restart</button>
+
+    <div id="credits">
+        <h2>Leader</h2>
+        <p>Fathalaleem - Coding, design</p>
+
+        <h2>Team</h2>
+        <p>Saif Abdelrhman - Research</p>
+        <p>Sultan Alhammadi - Design</p>
+        <p>Muhtadi Ali - Testing</p>
+    </div>
+
+    <div id="ratingBox" style="display:none;">
+        <h2>Are you satisfied?</h2>
+        <input type="number" id="rate" min="1" max="10">
+        <button onclick="rate()">Submit</button>
+        <p id="emoji"></p>
+    </div>
+</div>
+
+<script>
+// NAV
+function showPage(id){
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+
+    if(id==="end"){
+        setTimeout(()=>{
+            ratingBox.style.display="block";
+        },5000);
+    }
+}
+
+// INTRO
+function nextIntro(){ showPage("intro2"); }
+function start(){
+    welcome.innerText="Welcome "+nameInput.value;
+    showPage("menu");
+}
+
+// MOVE EFFECT
+document.addEventListener("mousemove",(e)=>{
+    let svg=document.getElementById("cellSVG");
+    if(!svg) return;
+    let x=(e.clientX/window.innerWidth-0.5)*20;
+    let y=(e.clientY/window.innerHeight-0.5)*20;
+    svg.style.transform=`rotateY(${x}deg) rotateX(${-y}deg)`;
+});
+
+// GAME
+let selected=null;
+function select(el,val){
+    document.querySelectorAll(".matchItem").forEach(i=>i.classList.remove("selected"));
+    el.classList.add("selected");
+    selected=val;
+}
+function match(val){
+    let correct =
+        (selected==="nucleus" && val==="control") ||
+        (selected==="mito" && val==="energy") ||
+        (selected==="golgi" && val==="package");
+    gameResult.innerText = correct ? "✅ Correct!" : "❌ Wrong";
+}
+function resetGame(){
+    selected=null;
+    gameResult.innerText="";
+    document.querySelectorAll(".matchItem").forEach(i=>i.classList.remove("selected"));
+}
+
+// QUIZ
+let quiz=[
+["ATP produced in?","Mito","Golgi","Nucleus","a"],
+["DNA stored in?","Ribo","Nucleus","ER","b"]
+];
+let i=0,s=0;
+
+function loadQ(){
+    if(i>=quiz.length){
+        q.innerText="Done!";
+        score.innerText="Score "+s;
+        return;
+    }
+    q.innerText=quiz[i][0];
+    a.innerText=quiz[i][1];
+    b.innerText=quiz[i][2];
+    c.innerText=quiz[i][3];
+}
+loadQ();
+
+function ans(c){
+
+    if(c===quiz[i][4]) s++;
+    i++; loadQ();
+}
+
+function resetQuiz(){
+    i=0; s=0;
+    loadQ();
+    score.innerText="";
+}
+
+// CREDITS
+function restartCredits(){
+    let c=document.getElementById("credits");
+    c.style.animation="none";
+    void c.offsetHeight;
+    c.style.animation="scrollDown 5s linear forwards";
+}
+
+// RATING
+function rate(){
+    let r=rate.value;
+    if(r>=8) emoji.innerText="😄 Excellent";
+    else if(r>=5) emoji.innerText="🙂 Good";
+    else emoji.innerText="😄 Excellent";
+}
+</script>
+
+</body>
+</html>
